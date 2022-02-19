@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>ASCII Fold - Plain Text Compression - CodeLobe.com</title>
+
+
+
+    <script>
+        /* From http://codelobe.com/tools/ascii-compress */
+
+        // decompressedTxt = t( compressedTxt );
+        // compressedTxt = s( decompressedTxt );
+
+        function U(i) {
+            var c, f, l, r = 0, o = '';
+
+            function g() {
+                c = i.charCodeAt(r++)
+            }
+
+            function p(x) {
+                o += String.fromCharCode(x)
+            }
+
+            while (r < i.length) {
+                g();
+                if (c == 96) {
+                    g();
+                    if (c == 96) p(c);
+                    else if (c > 65) {
+                        c -= c > 96 ? 62 : 61;
+                        l = c;
+                        g();
+                        f = c - 28;
+                        g();
+                        f += 94 * (c - 33);
+                        o += o.substr(o.length - f, l)
+                    } else if (c > 32) p(c - 34 & 127)
+                } else p(c)
+            }
+            return o
+        }
+
+        function s(c) {
+            function a(b) {
+                for (; 0 < b--;) l = c.charCodeAt(e++) & 127, 32 > l && 9 != l && 10 != l || 127 == l ? (d += "`", l = l + 34 & 127) : 96 == l && (d += "`"), d += String.fromCharCode(l)
+            }
+
+            function b() {
+                h && (e += h, m -= h, d += "`", f -= 5, h -= 5, h += 66, 96 <= h && (h += 1), d += String.fromCharCode(h), l = f % 94, f = (f - l) / 94, d += String.fromCharCode(l + 33), d += String.fromCharCode(f + 33), h = 0)
+            }
+            for (var d = "", e = 0, m = 0, f = 0, h = 0, p, k = c.length, l; e < k;) {
+                5 > m && (m = 5);
+                e + m > k && (b(), a(k - e));
+                p = c.substr(e, m);
+                var n = 8840 < e ? e - 8840 : 0;
+                p = c.substring(n, e).lastIndexOf(p);
+                0 <= p ? (f = e -
+                    (n + p), h = m++, 64 <= h && b()) : h ? b() : a(1)
+            }
+            return d
+        }
+
+        function t(c) {
+            function a() {
+                b = c.charCodeAt(m++)
+            }
+            for (var b, d, e, m = 0, f = ""; m < c.length;) a(), 96 == b ? (a(), 96 == b ? f += String.fromCharCode(b) : 65 < b ? (e = b -= 96 < b ? 62 : 61, a(), d = b - 28, a(), d += 94 * (b - 33), f += f.substr(f.length - d, e)) : 32 < b && (f += String.fromCharCode(b - 34 & 127))) : f += String.fromCharCode(b);
+            return f
+        }
+
+        function compressOnClick() {
+            var inputTxt = document.getElementById("inputTxt");
+            var infoMsg = document.getElementById("infoMsg");
+            var c = inputTxt.value.length,
+                g = (inputTxt.value = s(inputTxt.value)).length;
+            infoMsg.innerText = "Compressed " + c + " chars to " + g + (0 == c ? "" : " (saved " + (1E4 - 1E4 * (g / c) | 0) / 100 + "%)");
+        }
+
+        function decompressOnClick() {
+            var inputTxt = document.getElementById("inputTxt");
+            var infoMsg = document.getElementById("infoMsg");
+            var c = inputTxt.value.length,
+                g = (inputTxt.value = t(inputTxt.value)).length;
+            infoMsg.innerText = "Decompressed " + c + " chars to " + g + (0 == c ? "" : " (grew " + (1E4 * (g / c) | 0) / 100 + "%)");
+        }
+    </script>
+
+
+</head>
+
+<body>
+
+    <h1>ASCII Fold - Plain and simple text compression</h1>
+
+    <form autocomplete="off">
+        <textarea rows="16"
+                  style="width: 80%"
+                  id="inputTxt"></textarea>
+    </form>
+    <div id="infoMsg"></div>
+    <button onclick="javascript:compressOnClick()">Compress Text</button>
+    <button onclick="javascript:decompressOnClick()">deCompress Text</button>
+
+</body>
+
+</html>

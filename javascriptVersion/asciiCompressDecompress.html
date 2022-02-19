@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>ASCII Fold - Plain Text Compression - CodeLobe.com</title>
+
+    <script src="./asciiCompressDecompress.js"></script>
+
+    <script>
+        function compressOnClick() {
+            var inputTxt = document.getElementById("inputTxt");
+            var infoMsg = document.getElementById("infoMsg");
+            var inputLen = inputTxt.value.length,
+                outputLen = (inputTxt.value = compressTxt(inputTxt.value)).length;
+            infoMsg.innerText = "Compressed " + inputLen + " chars to " + outputLen + (0 == inputLen ?
+                "" :
+                " (saved " + (1E4 - 1E4 * (outputLen / inputLen) | 0) / 100 + "%)");
+        }
+
+        function decompressOnClick() {
+            var inputTxt = document.getElementById("inputTxt");
+            var infoMsg = document.getElementById("infoMsg");
+            var inputLen = inputTxt.value.length,
+                outputLen = (inputTxt.value = decompressTxt(inputTxt.value)).length;
+            infoMsg.innerText = "Decompressed " + inputLen + " chars to " + outputLen + (0 == inputLen ?
+                "" :
+                " (grew " + (1E4 * (outputLen / inputLen) | 0) / 100 + "%)");
+        }
+    </script>
+</head>
+
+<body>
+
+    <h1>ASCII Fold - Plain and simple text compression</h1>
+
+    <form autocomplete="off">
+        <textarea rows="16"
+                  style="width: 80%"
+                  id="inputTxt"></textarea>
+    </form>
+    <div id="infoMsg"></div>
+    <button onclick="javascript:compressOnClick()">Compress Text</button>
+    <button onclick="javascript:decompressOnClick()">deCompress Text</button>
+
+</body>
+
+</html>
