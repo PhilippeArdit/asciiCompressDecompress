@@ -150,7 +150,7 @@ void sa(size_t sab, char *inputText)
         sab -= 1;
         sasl = inputText[indexInputText] & 127;
         indexInputText += 1;
-        if (32 > sasl && 9 != sasl && 10 != sasl || 127 == sasl)
+        if ((32 > sasl && 9 != sasl && 10 != sasl) || (127 == sasl))
         {
             addCharToOutputText('`');
             sasl = sasl + 34 & 127;
