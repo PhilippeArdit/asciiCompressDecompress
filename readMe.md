@@ -20,8 +20,8 @@ This repository is a Visual Studio Code / Platformio project.
 - comressed.txt : the compressed version
 
 ### The **javascriptVersion** folder contains
-- [asciiCompressDecompress_original.html](https://philippeardit.github.io/AsciiCompressDecompress/javascriptVersion/asciiCompressDecompress_original.html), just a extraxtion of the original javascript code
-- [asciiCompressDecompress.html](https://philippeardit.github.io/AsciiCompressDecompress/javascriptVersion/asciiCompressDecompress.html), where I've extracted and reviewed the javascript code for a better rewriting in another language. 
+- [asciiCompressDecompress_original.html](https://philippeardit.github.io/asciiCompressDecompress/javascriptVersion/asciiCompressDecompress_original.html), just a extraxtion of the original javascript code
+- [asciiCompressDecompress.html](https://philippeardit.github.io/asciiCompressDecompress/javascriptVersion/asciiCompressDecompress.html), where I've extracted and reviewed the javascript code for a better rewriting in another language. 
 
 ### The **pythonVersion** folder 
 contains the same code written in Python (tested with python3 on MacOS).
