@@ -100,32 +100,34 @@ function compressTxt(inputText) {
             }
             sa(lenInputText - indexInputText, inputText)
         }
+        if (indexInputText < lenInputText) {
 
-        sp = _substr(inputText, indexInputText, Gsm)
-        var n = 0
-        if (8840 < indexInputText)
-            n = indexInputText - 8840
+            sp = _substr(inputText, indexInputText, Gsm)
+            var n = 0
+            if (8840 < indexInputText)
+                n = indexInputText - 8840
 
-        sp = _lastIndexOf(_substring(inputText, n, indexInputText), sp)
+            sp = _lastIndexOf(_substring(inputText, n, indexInputText), sp)
 
-        if (0 <= sp) {
-            Gsf = indexInputText - (n + sp)
+            if (0 <= sp) {
+                Gsf = indexInputText - (n + sp)
 
-            sh = Gsm
-            Gsm += 1
+                sh = Gsm
+                Gsm += 1
 
-            if (64 <= sh) {
+                if (64 <= sh) {
+                    if (sh) {
+                        sb(sh)
+                        sh = 0
+                    }
+                }
+            } else {
                 if (sh) {
                     sb(sh)
                     sh = 0
+                } else {
+                    sa(1, inputText)
                 }
-            }
-        } else {
-            if (sh) {
-                sb(sh)
-                sh = 0
-            } else {
-                sa(1, inputText)
             }
         }
     }
