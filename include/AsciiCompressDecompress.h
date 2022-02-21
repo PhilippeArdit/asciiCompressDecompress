@@ -1,7 +1,7 @@
 /**
  * @file AsciiCompressDecompress.h
  *
- * Copyright (c) 2022 Philippe Ardit & Ionbird
+ * Copyright (c) 2022 Philippe Ardit
  * Author : Philippe Ardit
  * Create Time : 02/2022
  * Change Log :
@@ -153,7 +153,7 @@ void sa(size_t sab, char *inputText)
         if ((32 > sasl && 9 != sasl && 10 != sasl) || (127 == sasl))
         {
             addCharToOutputText('`');
-            sasl = sasl + 34 & 127;
+            sasl = (sasl + 34) & 127;
         }
         else
         {
@@ -314,7 +314,7 @@ size_t AsciiDecompressTxt(char *inputText, size_t lenInputText, FILE *outPutStre
                 else
                 {
                     if (32 < cCode)
-                        addCharToOutputText(cCode - 34 & 127);
+                        addCharToOutputText((cCode - 34) & 127);
                 }
             }
         }
