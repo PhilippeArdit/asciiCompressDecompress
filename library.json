@@ -1,0 +1,23 @@
+{
+  "name": "asciiCompressDecompress",
+  "keywords": "ASCII, compress, decompress, javascript, C/C++, Python",
+  "description": "ASCII Fold - Plain and simple text compression",
+  "homepage": "https://philippeardit.github.io/asciiCompressDecompress/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/philippeardit/asciiCompressDecompress.git"
+  },
+  "version": "1.0.0",
+  "authors": {
+    "name": "Philippe Ardit"
+  },
+  "exclude": [
+    ".github",
+    "extras"
+  ],
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {
+    "libArchive": false
+  }
+}
