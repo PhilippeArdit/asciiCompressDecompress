@@ -7,10 +7,8 @@
  *
  * @copyright Copyright (c) 2022
  *
- *
- * test compress :              pio run; ./.pio/build/native/program compress ./testFiles/uncompressed.txt tmp.txt ; diff tmp.txt ./testFiles/compressed.txt; rm tmp.txt
- *
- * test decompress :            pio run; ./.pio/build/native/program decompress < compressed.txt > tmp.txt ; diff tmp.txt uncompressed.txt; rm tmp.txt
+ * test compress :              pio run; ./.pio/build/native/program compress ./testFiles/uncompressed.txt > tmp.txt ; diff tmp.txt ./testFiles/compressed.txt; rm tmp.txt
+ * test decompress :            pio run; ./.pio/build/native/program decompress ./testFiles/compressed.txt > tmp.txt ; diff tmp.txt ./testFiles/uncompressed.txt; rm tmp.txt
  *
  */
 #include <stdio.h>
@@ -24,21 +22,24 @@ int main(int argc, char *argv[])
             printf("- parameter %i : %s\n", i, argv[i]);
     */
 
-    if (argc == 1)
-    {
-        printf("Usage : \t%s (compress|decompress) [inputFile [outputFile]]\n\t\t%s (compress|decompress) < inputFile > outputFile\n", argv[0], argv[0]);
-        return 0;
-    }
     bool bCompress = true;
     int iArg = 0;
     char *arg;
     FILE *fpIn = stdin;
     FILE *fpOut = stdout;
-
+    size_t nbOutChar = 0;
+#ifdef DEBUG
+    fpIn = fopen("./testFiles/uncompressed.txt", "r");
+    nbOutChar += AsciiCompressFile(fpIn, fpOut);
+#else
+    if (argc == 1)
+    {
+        printf("Usage : \t%s (compress|decompress) [inputFile [outputFile]]\n\t\t%s (compress|decompress) < inputFile > outputFile\n", argv[0], argv[0]);
+        return 0;
+    }
     while (argc > iArg)
     {
         arg = argv[iArg];
-        // printf("- parameter %i : %s\n", iArg, arg);
 
         // First argument if exists : "decompress" or any string <=> "compress"
         if (iArg == 1)
@@ -70,33 +71,11 @@ int main(int argc, char *argv[])
         iArg++;
     }
 
-    const size_t bufSize = 5000000; // a very big buffer for the first version
-    char buffer[bufSize];
-    char c;
-    size_t nbInChar = 0;
-    size_t iBuf = 0;
-    size_t nbOutChar = 0;
+    if (bCompress)
+        nbOutChar += AsciiCompressFile(fpIn, fpOut);
+    else
+        nbOutChar += AsciiDecompressFile(fpIn, fpOut);
+#endif // DEBUG
 
-    //   while ((c = (fpIn == NULL ? getchar() : fgetc(fpIn))) != EOF)
-    while ((c = fgetc(fpIn)) != EOF)
-    {
-        nbInChar++;
-        buffer[iBuf++] = c;
-        if (iBuf == bufSize)
-        {
-            if (bCompress)
-                nbOutChar += AsciiCompressTxt(buffer, iBuf, fpOut);
-            else
-                nbOutChar += AsciiDecompressTxt(buffer, iBuf, fpOut);
-            iBuf = 0;
-        }
-    }
-    if (iBuf)
-    {
-        if (bCompress)
-            nbOutChar += AsciiCompressTxt(buffer, iBuf, fpOut);
-        else
-            nbOutChar += AsciiDecompressTxt(buffer, iBuf, fpOut);
-    }
     return 0;
 }

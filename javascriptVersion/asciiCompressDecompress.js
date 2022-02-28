@@ -87,6 +87,7 @@ function compressTxt(inputText) {
     Gsf = 0
     var sh = 0
     var sp = ""
+    var sp2 = 0
     var lenInputText = _length(inputText)
     while (indexInputText < lenInputText) {
         if (5 > Gsm) {
@@ -102,15 +103,15 @@ function compressTxt(inputText) {
         }
         if (indexInputText < lenInputText) {
 
-            sp = _substr(inputText, indexInputText, Gsm)
             var n = 0
             if (8840 < indexInputText)
                 n = indexInputText - 8840
 
-            sp = _lastIndexOf(_substring(inputText, n, indexInputText), sp)
+            sp = _substr(inputText, indexInputText, Gsm)
+            sp2 = _lastIndexOf(_substring(inputText, n, indexInputText), sp)
 
-            if (0 <= sp) {
-                Gsf = indexInputText - (n + sp)
+            if (0 <= sp2) {
+                Gsf = indexInputText - (n + sp2)
 
                 sh = Gsm
                 Gsm += 1

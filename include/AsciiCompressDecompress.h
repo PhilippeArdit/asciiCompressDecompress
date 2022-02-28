@@ -56,9 +56,9 @@ void end();
 void addCharToTxtBuff(const char c);
 char readCharFromTxtBuff(size_t iVirtualPos);
 void addCharToOutputText(char c);
-void sa(size_t sab, char *inputText);
 void sb(unsigned int sbsh);
 size_t nbrOutputChars = 0;
+size_t nbrVirtualChars = 0;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -83,6 +83,7 @@ void addCharToTxtBuff(const char c)
         txtBufStartPos = txtBufEosPos + 1;
     if (txtBufStartPos == txtBufSize)
         txtBufStartPos = 0;
+    nbrVirtualChars++;
 }
 
 char readCharFromTxtBuff(size_t iVirtualPos)
@@ -115,7 +116,7 @@ char readCharFromTxtBuff(size_t iVirtualPos)
         iVirtualPos = 53 -> iPos = 13 -> "4" : iPos = iVirtualPos % txtBufSize = 53 % 40 = 13
 
     */
-    if (nbrOutputChars - iVirtualPos > txtBufSize)
+    if (nbrVirtualChars - iVirtualPos > txtBufSize)
         return '\0'; // We should never be here !
 
     size_t iPos = iVirtualPos % txtBufSize;
@@ -142,14 +143,16 @@ void addCharToOutputText(char c)
     nbrOutputChars++;
 }
 
-void sa(size_t sab, char *inputText)
+void fsa(size_t sab, FILE *inputFile)
 {
     unsigned int sasl = 0;
     while (0 < sab)
     {
         sab -= 1;
-        sasl = inputText[indexInputText] & 127;
+        addCharToTxtBuff(fgetc(inputFile));
+        sasl = readCharFromTxtBuff(indexInputText) & 127;
         indexInputText += 1;
+
         if ((32 > sasl && 9 != sasl && 10 != sasl) || (127 == sasl))
         {
             addCharToOutputText('`');
@@ -166,10 +169,13 @@ void sa(size_t sab, char *inputText)
     }
 }
 
-void sb(unsigned int sbsh)
+void fsb(unsigned int sbsh, FILE *inputFile)
 {
     unsigned int sbsl = 0;
     indexInputText += sbsh;
+    for (size_t i = 0; i < sbsh; i++)
+        addCharToTxtBuff(fgetc(inputFile));
+
     Gsm -= sbsh;
     addCharToOutputText('`');
     Gsf -= 5;
@@ -186,7 +192,7 @@ void sb(unsigned int sbsh)
     addCharToOutputText(Gsf + 33);
 }
 
-size_t AsciiCompressTxt(char *inputText, size_t lenInputText, FILE *outPutStream)
+size_t AsciiCompressFile(FILE *inputFile, FILE *outPutStream)
 {
     init(outPutStream);
     bIsCompressProcess = true;
@@ -195,41 +201,47 @@ size_t AsciiCompressTxt(char *inputText, size_t lenInputText, FILE *outPutStream
     Gsf = 0;
     unsigned int sh = 0;
     int sp2;
+
+    fseek(inputFile, 0, SEEK_END);
+    size_t lenInputText = ftell(inputFile);
+
+    fseek(inputFile, 0, SEEK_SET);
+
     while (indexInputText < lenInputText)
     {
-        // addCharToOutputText(inputText[indexInputText++]);
         if (5 > Gsm)
             Gsm = 5;
-
         if (indexInputText + Gsm > lenInputText)
         {
             if (sh)
             {
-                sb(sh);
+                fsb(sh, inputFile);
                 sh = 0;
             }
-            sa(lenInputText - indexInputText, inputText);
+            fsa(lenInputText - indexInputText, inputFile);
         }
         if (indexInputText < lenInputText)
         {
             size_t n = 0;
             if (8840 < indexInputText)
                 n = indexInputText - 8840;
-
-            // sp1 = _substr(inputText, indexInputText, Gsm);
-            // sp2 = _lastIndexOf(_substring(inputText, n, indexInputText), sp1);
             sp2 = -1;
             size_t j = 0;
-            for (char *pInText = inputText + n; pInText < inputText + indexInputText && j + n <= indexInputText - Gsm; pInText++)
+            char c1, c2;
+
+            while (nbrVirtualChars < indexInputText + Gsm && nbrVirtualChars < lenInputText)
+                addCharToTxtBuff(fgetc(inputFile));
+
+            for (size_t idInText = n; idInText < indexInputText && j + n <= indexInputText - Gsm; idInText++)
             {
-                char *p1 = pInText;
-                char *p2 = inputText + indexInputText;
                 size_t i = 0;
-                while (i < Gsm && *p1 == *p2)
+                c1 = readCharFromTxtBuff(idInText + i);
+                c2 = readCharFromTxtBuff(indexInputText + i);
+                while (i < Gsm && c1 == c2)
                 {
-                    p1++;
-                    p2++;
                     i++;
+                    c1 = readCharFromTxtBuff(idInText + i);
+                    c2 = readCharFromTxtBuff(indexInputText + i);
                 }
                 if (i == Gsm)
                     sp2 = j;
@@ -239,15 +251,13 @@ size_t AsciiCompressTxt(char *inputText, size_t lenInputText, FILE *outPutStream
             if (0 <= sp2)
             {
                 Gsf = indexInputText - (n + sp2);
-
                 sh = Gsm;
                 Gsm += 1;
-
                 if (64 <= sh)
                 {
                     if (sh)
                     {
-                        sb(sh);
+                        fsb(sh, inputFile);
                         sh = 0;
                     }
                 }
@@ -256,11 +266,11 @@ size_t AsciiCompressTxt(char *inputText, size_t lenInputText, FILE *outPutStream
             {
                 if (sh)
                 {
-                    sb(sh);
+                    fsb(sh, inputFile);
                     sh = 0;
                 }
                 else
-                    sa(1, inputText);
+                    fsa(1, inputFile);
             }
         }
     }
@@ -268,7 +278,7 @@ size_t AsciiCompressTxt(char *inputText, size_t lenInputText, FILE *outPutStream
     return nbrOutputChars;
 }
 
-size_t AsciiDecompressTxt(char *inputText, size_t lenInputText, FILE *outPutStream)
+size_t AsciiDecompressFile(FILE *inputFile, FILE *outPutStream)
 {
     init(outPutStream);
     bIsCompressProcess = false;
@@ -277,36 +287,39 @@ size_t AsciiDecompressTxt(char *inputText, size_t lenInputText, FILE *outPutStre
     unsigned int cCode = 0;
     int td = 0;
     unsigned int lenRepeat = 0;
+
+    fseek(inputFile, 0, SEEK_END);
+    size_t lenInputText = ftell(inputFile);
+    fseek(inputFile, 0, SEEK_SET);
+
     while (indexInputText < lenInputText)
     {
-        // addCharToOutputText(inputText[indexInputText++]);
-
-        cCode = inputText[indexInputText];
+        cCode = fgetc(inputFile);
         indexInputText += 1;
-        if (96 == cCode) // ` : escape code
-        {                // if not a ` again, both following chars tel where to go back an how many characters to copy again
-            cCode = inputText[indexInputText];
+
+        if (96 == cCode)
+        {
+            cCode = fgetc(inputFile);
             indexInputText += 1;
-            if (96 == cCode) // ` Grave accent
+            if (96 == cCode)
                 addCharToOutputText(cCode);
             else
             {
-                if (65 < cCode) // ` : escape code
+                if (65 < cCode)
                 {
                     if (96 < cCode)
-                        cCode -= 62; // min 97-62 = 35, max 126-62 = 64
+                        cCode -= 62;
                     else
-                        cCode -= 61;   // max 96-61 = 35, min 66-61 = 5
-                    lenRepeat = cCode; // min : 5, max : 64
+                        cCode -= 61;
+                    lenRepeat = cCode;
 
-                    cCode = inputText[indexInputText]; // 10 -> 127
+                    cCode = fgetc(inputFile);
                     indexInputText += 1;
-                    td = cCode - 28;                   // -18 -> 99
-                    cCode = inputText[indexInputText]; // 10 -> 127
+                    td = cCode - 28;
+                    cCode = fgetc(inputFile);
                     indexInputText += 1;
-                    td += 94 * (cCode - 33); // 99 + 94 * (127-33) = 8935
+                    td += 94 * (cCode - 33);
 
-                    // tf += _substr(tf, _length(tf) - td, lenRepeat);
                     size_t iPos = nbrOutputChars - td;
                     for (size_t i = 0; i < lenRepeat; i++)
                         addCharToOutputText(readCharFromTxtBuff(iPos + i));
