@@ -13,6 +13,13 @@
  */
 #include <stdio.h>
 #include <AsciiCompressDecompress.hpp>
+#include <sys/time.h>
+
+// from https://youngmok.com/precise-elapsed-time-measurement-in-c-program/
+double getTimeElapsed(struct timeval end, struct timeval start)
+{
+    return (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.00;
+}
 
 int main(int argc, char *argv[])
 {
@@ -70,11 +77,18 @@ int main(int argc, char *argv[])
         iArg++;
     }
 #endif // DEBUG
-
+       /*    struct timeval tvalBefore, tvalAfter;
+           gettimeofday(&tvalBefore, NULL);
+       */
     if (bCompress)
         nbOutChar += asciiCompressDecompress.compressFile(fpIn, fpOut);
     else
         nbOutChar += asciiCompressDecompress.decompressFile(fpIn, fpOut);
+    /*
+    gettimeofday(&tvalAfter, NULL);
+    double time_elapsed = getTimeElapsed(tvalAfter, tvalBefore);
 
+     printf("time_elapsed: %lf seconds\n", time_elapsed);
+    */
     return 0;
 }

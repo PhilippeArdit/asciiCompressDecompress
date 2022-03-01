@@ -44,13 +44,14 @@
 class AsciiCompressDecompress
 {
 private:
-    size_t txtBufSize, txtBufEosPos, txtBufStartPos, nbFullBuff, indexInputText, Gsm, nbrOutputChars, nbrVirtualChars, lenInputText;
+    size_t txtBufSize, txtBufEosPos, txtBufStartPos, nbFullBuff, indexInputText,
+        Gsm, nbrOutputChars, nbrVirtualChars, lenInputText;
     unsigned int Gsf;
     bool bIsCompressProcess;
     char *txtBuf;
     FILE *_outPutStream;
 
-    void init(FILE *inputFile, FILE *outPutStream)
+    bool init(FILE *inputFile, FILE *outPutStream)
     {
         txtBufSize = 9000;
         txtBufEosPos = 0;
@@ -69,6 +70,8 @@ private:
         fseek(inputFile, 0, SEEK_END);
         lenInputText = ftell(inputFile);
         fseek(inputFile, 0, SEEK_SET);
+
+        return txtBuf != NULL;
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -136,6 +139,21 @@ private:
         return txtBuf[iPos];
     }
 
+    void getNextCharFromTxtBuff(size_t iVirtualPos, char **p)
+    {
+        if (*p == 0)
+            *p = txtBuf + (iVirtualPos % txtBufSize);
+        else
+            getNextCharFromTxtBuff(p);
+    }
+
+    void getNextCharFromTxtBuff(char **p)
+    {
+        (*p)++;
+        if (*p == txtBuf + txtBufSize)
+            *p = txtBuf;
+    }
+
     void end()
     {
         free(txtBuf);
@@ -169,9 +187,7 @@ private:
             else
             {
                 if (96 == sasl)
-                {
                     addCharToOutputText('`');
-                }
             }
             addCharToOutputText(sasl);
         }
@@ -191,9 +207,7 @@ private:
         sbsh -= 5;
         sbsh += 66;
         if (96 <= sbsh)
-        {
             sbsh += 1;
-        }
         addCharToOutputText(sbsh);
         sbsl = Gsf % 94;
         Gsf = (Gsf - sbsl) / 94;
@@ -205,11 +219,13 @@ public:
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     size_t compressFile(FILE *inputFile, FILE *outPutStream)
     {
-        init(inputFile, outPutStream);
+        if (!init(inputFile, outPutStream))
+            return 0;
         bIsCompressProcess = true;
-
         unsigned int sh = 0;
         int sp2;
+        size_t i, n, jMax;
+        char *p02, *p1, *p2;
 
         while (indexInputText < lenInputText)
         {
@@ -226,30 +242,37 @@ public:
             }
             if (indexInputText < lenInputText)
             {
-                size_t n = 0;
+                n = 0;
                 if (8840 < indexInputText)
                     n = indexInputText - 8840;
-                sp2 = -1;
-                size_t j = 0;
-                char c1, c2;
 
                 while (nbrVirtualChars < indexInputText + Gsm && nbrVirtualChars < lenInputText)
                     addCharToTxtBuff(fgetc(inputFile));
 
-                for (size_t idInText = n; idInText < indexInputText && j + n <= indexInputText - Gsm; idInText++)
+                sp2 = -1;
+                p02 = 0;
+                p1 = 0;
+                getNextCharFromTxtBuff(indexInputText, &p02);
+                jMax = indexInputText - n;
+                if (jMax + 1 - Gsm < jMax)
+                    jMax = jMax - Gsm + 1;
+                for (size_t j = 0; j < jMax; j++)
                 {
-                    size_t i = 0;
-                    c1 = readCharFromTxtBuff(idInText + i);
-                    c2 = readCharFromTxtBuff(indexInputText + i);
-                    while (i < Gsm && c1 == c2)
+                    getNextCharFromTxtBuff(n + j, &p1);
+                    if (*p1 == *p02)
                     {
-                        i++;
-                        c1 = readCharFromTxtBuff(idInText + i);
-                        c2 = readCharFromTxtBuff(indexInputText + i);
+                        p2 = p02;
+                        i = 0;
+                        while (i < Gsm && *p1 == *p2)
+                        {
+                            i++;
+                            getNextCharFromTxtBuff(&p1);
+                            getNextCharFromTxtBuff(&p2);
+                        }
+                        if (i == Gsm)
+                            sp2 = j;
+                        p1 = 0;
                     }
-                    if (i == Gsm)
-                        sp2 = j;
-                    j++;
                 }
 
                 if (0 <= sp2)
@@ -285,7 +308,8 @@ public:
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     size_t decompressFile(FILE *inputFile, FILE *outPutStream)
     {
-        init(inputFile, outPutStream);
+        if (!init(inputFile, outPutStream))
+            return 0;
         bIsCompressProcess = false;
 
         unsigned int cCode, lenRepeat;
