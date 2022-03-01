@@ -12,7 +12,7 @@
  *
  */
 #include <stdio.h>
-#include <AsciiCompressDecompress.h>
+#include <AsciiCompressDecompress.hpp>
 
 int main(int argc, char *argv[])
 {
@@ -30,7 +30,6 @@ int main(int argc, char *argv[])
     size_t nbOutChar = 0;
 #ifdef DEBUG
     fpIn = fopen("./testFiles/uncompressed.txt", "r");
-    nbOutChar += AsciiCompressFile(fpIn, fpOut);
 #else
     if (argc == 1)
     {
@@ -70,12 +69,12 @@ int main(int argc, char *argv[])
         }
         iArg++;
     }
+#endif // DEBUG
 
     if (bCompress)
-        nbOutChar += AsciiCompressFile(fpIn, fpOut);
+        nbOutChar += asciiCompressDecompress.compressFile(fpIn, fpOut);
     else
-        nbOutChar += AsciiDecompressFile(fpIn, fpOut);
-#endif // DEBUG
+        nbOutChar += asciiCompressDecompress.decompressFile(fpIn, fpOut);
 
     return 0;
 }
