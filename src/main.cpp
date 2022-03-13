@@ -20,6 +20,12 @@ double getTimeElapsed(struct timeval end, struct timeval start)
 {
     return (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.00;
 }
+unsigned long millis()
+{
+    struct timeval time;
+    gettimeofday(&time, NULL);
+    return time.tv_usec / 1000;
+}
 
 int main(int argc, char *argv[])
 {
@@ -34,7 +40,6 @@ int main(int argc, char *argv[])
     char *arg;
     FILE *fpIn = stdin;
     FILE *fpOut = stdout;
-    size_t nbOutChar = 0;
 #ifdef DEBUG
     fpIn = fopen("./testFiles/uncompressed.txt", "r");
 #else
@@ -77,18 +82,21 @@ int main(int argc, char *argv[])
         iArg++;
     }
 #endif // DEBUG
-       /*    struct timeval tvalBefore, tvalAfter;
-           gettimeofday(&tvalBefore, NULL);
-       */
-    if (bCompress)
-        nbOutChar += asciiCompressDecompress.compressFile(fpIn, fpOut);
-    else
-        nbOutChar += asciiCompressDecompress.decompressFile(fpIn, fpOut);
-    /*
-    gettimeofday(&tvalAfter, NULL);
-    double time_elapsed = getTimeElapsed(tvalAfter, tvalBefore);
+    struct timeval tvalBefore, tvalAfter;
+    gettimeofday(&tvalBefore, NULL);
 
-     printf("time_elapsed: %lf seconds\n", time_elapsed);
-    */
+    unsigned int i = 1;
+    AsciiCompressDecompress asciiCompressDecompress;
+    if (bCompress)
+        while (!asciiCompressDecompress.compressFile(fpIn, fpOut, 10, millis))
+            i++;
+    else
+        while (!asciiCompressDecompress.decompressFile(fpIn, fpOut, 10, millis))
+            i++;
+
+    gettimeofday(&tvalAfter, NULL);
+
+    // printf("time_elapsed: %lf seconds - %u iterations\n", getTimeElapsed(tvalAfter, tvalBefore), i);
+
     return 0;
 }

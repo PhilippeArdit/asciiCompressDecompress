@@ -44,33 +44,42 @@
 class AsciiCompressDecompress
 {
 private:
-    size_t txtBufSize, txtBufEosPos, txtBufStartPos, nbFullBuff, indexInputText,
-        Gsm, nbrOutputChars, nbrVirtualChars, lenInputText;
+    size_t txtBufEosPos, txtBufStartPos, nbFullBuff, indexInputText, Gsm, nbrOutputChars, nbrVirtualChars, lenInputText, txtBufSize;
     unsigned int Gsf;
     bool bIsCompressProcess;
     char *txtBuf;
     FILE *_outPutStream;
 
+    unsigned int sh;
+    int sp2;
+    size_t i, n, jMax;
+    char *p02, *p1, *p2;
+
+    unsigned int cCode, lenRepeat;
+    int td;
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     bool init(FILE *inputFile, FILE *outPutStream)
     {
-        txtBufSize = 9000;
-        txtBufEosPos = 0;
-        txtBufStartPos = 0;
-        nbFullBuff = 0;
-        indexInputText = 0;
-        Gsm = 0;
-        Gsf = 0;
-        bIsCompressProcess = false;
-        nbrOutputChars = 0;
-        nbrVirtualChars = 0;
-        nbrOutputChars = 0;
-        txtBuf = (char *)calloc(txtBufSize, sizeof(char));
-        _outPutStream = outPutStream;
+        if (txtBuf == NULL)
+        {
+            txtBufEosPos = 0;
+            txtBufStartPos = 0;
+            nbFullBuff = 0;
+            indexInputText = 0;
+            Gsm = 0;
+            nbrOutputChars = 0;
+            nbrVirtualChars = 0;
+            txtBufSize = 9000;
+            Gsf = 0;
+            sh = 0;
 
-        fseek(inputFile, 0, SEEK_END);
-        lenInputText = ftell(inputFile);
-        fseek(inputFile, 0, SEEK_SET);
-
+            txtBuf = (char *)calloc(txtBufSize, sizeof(char));
+            _outPutStream = outPutStream;
+            fseek(inputFile, 0, SEEK_END);
+            lenInputText = ftell(inputFile);
+            fseek(inputFile, 0, SEEK_SET);
+        }
         return txtBuf != NULL;
     }
 
@@ -139,6 +148,7 @@ private:
         return txtBuf[iPos];
     }
 
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     void getNextCharFromTxtBuff(size_t iVirtualPos, char **p)
     {
         if (*p == 0)
@@ -147,6 +157,7 @@ private:
             getNextCharFromTxtBuff(p);
     }
 
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     void getNextCharFromTxtBuff(char **p)
     {
         (*p)++;
@@ -154,9 +165,11 @@ private:
             *p = txtBuf;
     }
 
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     void end()
     {
         free(txtBuf);
+        txtBuf = NULL;
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -217,18 +230,26 @@ private:
 
 public:
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    size_t compressFile(FILE *inputFile, FILE *outPutStream)
+    AsciiCompressDecompress()
     {
+        txtBuf = NULL;
+    }
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    bool compressFile(FILE *inputFile, FILE *outPutStream, unsigned long maxMs, unsigned long (*millisFct)())
+    {
+        unsigned long startMs = millisFct();
+
         if (!init(inputFile, outPutStream))
-            return 0;
+            return true;
+
         bIsCompressProcess = true;
-        unsigned int sh = 0;
-        int sp2;
-        size_t i, n, jMax;
-        char *p02, *p1, *p2;
 
         while (indexInputText < lenInputText)
         {
+            if (maxMs && (millisFct() - startMs > maxMs))
+                return false;
+
             if (5 > Gsm)
                 Gsm = 5;
             if (indexInputText + Gsm > lenInputText)
@@ -302,21 +323,24 @@ public:
             }
         }
         end();
-        return nbrOutputChars;
+        return true;
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    size_t decompressFile(FILE *inputFile, FILE *outPutStream)
+    bool decompressFile(FILE *inputFile, FILE *outPutStream, unsigned long maxMs, unsigned long (*millisFct)())
     {
-        if (!init(inputFile, outPutStream))
-            return 0;
-        bIsCompressProcess = false;
+        unsigned long startMs = millisFct();
 
-        unsigned int cCode, lenRepeat;
-        int td;
+        if (!init(inputFile, outPutStream))
+            return true;
+
+        bIsCompressProcess = false;
 
         while (indexInputText < lenInputText)
         {
+            if (maxMs && (millisFct() - startMs > maxMs))
+                return false;
+
             cCode = fgetc(inputFile);
             indexInputText += 1;
 
@@ -360,8 +384,8 @@ public:
             }
         }
         end();
-        return nbrOutputChars;
+        return true;
     }
-} asciiCompressDecompress;
+};
 
 #endif

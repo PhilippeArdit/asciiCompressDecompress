@@ -41,28 +41,28 @@ Test : the following command lines must be silent: the goal is to compress or de
 
 ### The **include** folder contains the same code written in C
 
-A sample C program is available too (src/main.c)
+For microcontroller firmware's loop usage, accepts two extra arguments : maxMs and millisecond function.
+If maxMs == 0, the process compress or decompress in one call.
+If maxMs > 0, the processus will stops when running more than maxMs milli seconds. Calling it again will make it run maxMs more time, and so on until the job is done.
+
+#### Tests
+
+A sample C program is available : src/main.c
 
 Once inside platformio, "pio run" will compile and generate .pio/build/native/program for your platform.
 
-Test : the following command lines must be silent: the goal is to compress or decompress and compare the result with what is expected.
+The following command lines must be silent: the goal is to compress or decompress and compare the result with what is expected.
 
-#### Test C compress
+##### Test C compress
 
     ./.pio/build/native/program compress < ./testFiles/uncompressed.txt > tmp.txt; diff tmp.txt ./testFiles/compressed.txt; rm tmp.txt
 or
 
     ./.pio/build/native/program compress ./testFiles/uncompressed.txt > tmp.txt ; diff tmp.txt ./testFiles/compressed.txt; rm tmp.txt
-***but not yet***
 
-    cat ./testFiles/uncompressed.txt | ./.pio/build/native/program compress > tmp.txt ; diff tmp.txt ./testFiles/compressed.txt; rm tmp.txt
-
-#### Test C decompress
+##### Test C decompress
 
     ./.pio/build/native/program decompress < ./testFiles/compressed.txt > tmp.txt; diff tmp.txt ./testFiles/uncompressed.txt; rm tmp.txt
 or
 
     ./.pio/build/native/program decompress ./testFiles/compressed.txt > tmp.txt ; diff tmp.txt ./testFiles/uncompressed.txt; rm tmp.txt
-***but not yet***
-
-    cat ./testFiles/compressed.txt | ./.pio/build/native/program decompress  > tmp.txt ; diff tmp.txt ./testFiles/uncompressed.txt; rm tmp.txt
