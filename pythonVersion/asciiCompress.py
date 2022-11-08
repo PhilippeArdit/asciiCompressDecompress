@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 #
 # python ./pythonVersion/asciiCompress.py < ./testFiles/uncompressed.txt > testFiles/compressed.txt
 # cat ./testFiles/uncompressed.txt | python ./pythonVersion/asciiCompress.py > testFiles/compressed.txt

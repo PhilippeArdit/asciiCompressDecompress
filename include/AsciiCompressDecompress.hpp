@@ -168,7 +168,8 @@ private:
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     void end()
     {
-        free(txtBuf);
+        if (txtBuf != NULL)
+            free(txtBuf);
         txtBuf = NULL;
     }
 
@@ -233,6 +234,11 @@ public:
     AsciiCompressDecompress()
     {
         txtBuf = NULL;
+    }
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    ~AsciiCompressDecompress()
+    {
+        end();
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -386,6 +392,6 @@ public:
         end();
         return true;
     }
-};
+} asciiCompressDecompress;
 
 #endif

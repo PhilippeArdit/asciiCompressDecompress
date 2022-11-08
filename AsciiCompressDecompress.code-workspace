@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stdio.h": "c",
+			"cstdio": "c",
+			"asciicompressdecompress.h": "c",
+			"ios": "cpp",
+			"istream": "cpp",
+			"locale": "cpp",
+			"ostream": "cpp"
+		}
+	}
+}
